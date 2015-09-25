@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div id="contents">
+    <ul class="images" id="devices">
+      {% for dev in devs %}
+          {% if dev.status == True %}
+                <li id="li{{ dev.id }}" class="lion" data-deviceid="{{ dev.id }}"><div class="textinli">{{ dev.name }} <br> {{ dev.systemcode }}{{ dev.devicecode }}</div></li>
+          {% else %}
+                <li id="li{{ dev.id }}" class="lioff" data-deviceid="{{ dev.id }}"><div class="textinli">{{ dev.name }} <br> {{ dev.systemcode }}{{ dev.devicecode }}</div></li>
+          {% endif %}
+{#        <li id="li{{ dev.id }}" class="lion"  onclick="switchbutton('li{{ dev.id }}');"><div class="textinli">{{ dev.name }} <br> {{ dev.systemcode }}{{ dev.devicecode }}</div></li>#}
+      {% endfor %}
+    </ul>
+</div>
+
+<script>
+    (function(){
+        $('#devices li').on('click', function(){
+            var $id = $(this).data('deviceid');
+            var $lielement = $(this)
+            $.ajax({
+                url : "/changeswitchstate/",
+                type : "POST",
+                dataType: "json",
+                data : {
+                    deviceid : $id,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success : function(json) {
+                    if(json.status == 'on'){
+                        $lielement.removeClass().addClass('lion');
+                    }
+                    if(json.status == 'off'){
+                        $lielement.removeClass().addClass('lioff');
+                    }
+                },
+                error : function(xhr,errmsg,err) {
+                    alert(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+    })();
+</script>
+
+
+{% endblock %}
+

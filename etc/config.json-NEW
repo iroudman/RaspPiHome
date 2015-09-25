@@ -1,0 +1,79 @@
+{
+    "settings": {
+        "log-file": "/var/log/pilight.log", 
+        "webserver-cache": 1, 
+        "log-level": 6, 
+        "webserver-http-port": 5001, 
+        "webserver-enable": 1, 
+        "webserver-root": "/usr/local/share/pilight/", 
+        "pid-file": "/var/run/pilight.pid"
+    }, 
+    "rules": {}, 
+    "gui": {
+        "testdev": {
+            "media": [
+                "all"
+            ], 
+            "group": [
+                "Obergeschoss"
+            ], 
+            "name": "My Test device"
+        }
+    }, 
+    "devices": {
+        "Test": {
+            "state": "off", 
+            "protocol": [
+                "mumbi"
+            ], 
+            "id": [
+                {
+                    "unitcode": 11, 
+                    "systemcode": 42
+                }
+            ]
+        }, 
+        "AAAAAA": {
+            "state": "off", 
+            "protocol": [
+                "mumbi"
+            ], 
+            "id": [
+                {
+                    "unitcode": 42, 
+                    "systemcode": 6
+                }
+            ]
+        }, 
+        "Test Switch": {
+            "state": "off", 
+            "protocol": [
+                "mumbi"
+            ], 
+            "id": [
+                {
+                    "unitcode": 1, 
+                    "systemcode": 29
+                }
+            ]
+        }
+    }, 
+    "hardware": {
+        "433gpio": {
+            "sender": 0, 
+            "receiver": 1
+        }
+    }, 
+    "registry": {
+        "pilight": {
+            "firmware": {
+                "lpf": 634880, 
+                "version": 65, 
+                "hpf": 652790
+            }, 
+            "version": {
+                "current": "7.0"
+            }
+        }
+    }
+}

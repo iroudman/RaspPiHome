@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div id="contents">
+
+
+
+{% comment %}
+    <script>
+
+        function confirmDelete(url) {
+            if (confirm("Are you sure you want to delete this?")) {
+                location.href = url
+            } else {
+                false;
+            }
+        }
+        function editRecord(recordid) {
+            $.ajax({
+                url : "/getdatatoedit/",
+                type : "POST",
+                dataType: "json",
+                data : {
+                    deviceid : recordid,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success : function(json) {
+                    $('#editdialog #recordid').val(recordid);
+                    $('#editdialog #id_name').val(json.vname);
+                    $('#editdialog #id_description').val(json.vdesc);
+                    $('#editdialog #id_systemcode').val(json.vsystemcode);
+                    $('#editdialog #id_devicecode').val(json.vdevicecode);
+
+                    $( "#editdialog" ).dialog({
+                            show: {
+                                effect: "explode",
+                                duration: 1000
+                            },
+                            hide: {
+                                effect: "explode",
+                                duration: 1000
+                            }
+                        }
+                    );
+                },
+                error : function(xhr,errmsg,err) {
+                    alert(xhr.status + ": " + xhr.responseText);
+                }
+            });
+            return false;
+        }
+
+        function addRecord(url) {
+{#           $('#devicestable').append('<tr><td>my data</td><td>more data</td></tr>');#}
+            $( "#addialog" ).dialog({
+                    show: {
+                        effect: "explode",
+                        duration: 1000
+                    },
+                    hide: {
+                        effect: "explode",
+                        duration: 1000
+                    }
+                }
+            );
+        }
+
+
+
+    </script>
+
+
+
+
+    <div id="container">
+        <h2>All devices</h2>
+
+        <table id="devicestable" cellspacing="0">
+            <thead>
+                <tr>
+                    <th width="30%">
+                        Device name
+                    </th>
+                    <th width="40%">
+                        Description
+                    </th>
+                    <th width="15%">
+                        System ID
+                    </th>
+                    <th colspan="3" align="left" width="15%">
+                        Device ID
+                    </th>
+
+                </tr>
+            </thead>
+            <tbody>
+            {% for dev in devs %}
+                {% if dev.status == 0  %}
+                <tr class="deactivateddevice">
+                {% else %}
+                <tr class="activateddevice">
+                {% endif %}
+
+                    <td>
+                        {{ dev.name }}
+                    </td>
+                    <td>
+                        {{ dev.description }}
+                    </td>
+                    <td>
+                        {{ dev.systemcode }}
+                    </td>
+                    <td>
+                        {{ dev.devicecode }}
+                    </td>
+                    <td width="5px">
+                        <img src="{% static "images/delete.png" %}" width="20px" height="20" onclick="return confirmDelete('/deleterecord/{{ dev.id }}');" alt="Remove device" height="24" width="24">
+{#                        <div  onclick="return confirmDelete('/deleterecord/{{ dev.id }}');">Remove</div>#}
+                    </td>
+                    <td width="5px">
+                        <img src="{% static "images/edit.png" %}" width="20px" height="20" onclick="return editRecord ({{ dev.id }});" alt="Edit device" height="24" width="24">
+{#                        <div  onclick="return editRecord ({{ dev.id }});">Edit</div>#}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="6" align="right">
+
+                        <a href="#" onclick="return addRecord ('/addrecord');" color="white">+ Add device</a>
+
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+    </div>
+
+<div id="addialog" title="Add new device" hidden>
+    <form method="POST" class="form" action="/addrecord/" enctype="multipart/form-data" id="create_device_form">
+        {% csrf_token %}
+        {{ add_form.as_p }}
+        <input type="submit" class="button top-4" value="Add">
+    </form>
+</div>
+
+<div id="editdialog" title="Edit device" hidden>
+    <form method="POST" class="form" action="/editrecord/" enctype="multipart/form-data" id="edit_device_form">
+        <input type="hidden" id="recordid" name="recordid">
+        {% csrf_token %}
+        {{ edit_form.as_p }}
+        <input type="submit" class="button top-4" value="Save">
+    </form>
+</div>
+
+{% endcomment %}
+
+
+
+<div id="DevicesTableContainer"></div>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('#DevicesTableContainer').jtable({
+                title: 'All devices',
+                columnResizable: true,
+
+                paging: true, //Enable paging
+                pageSize: 10, //Set page size (default: 10)
+{#                sorting: true, //Enable sorting#}
+{#                defaultSorting: 'Name ASC', //Set default sorting#}
+
+                actions: {
+                    listAction: '/getlistfromJTable/',
+                    createAction: '/addrecordfromJTable/',
+                    updateAction: '/editrecordfromJTable/',
+                    deleteAction: '/deleterecordfromJTable/'
+                },
+                fields: {
+                    id: {
+                        key: true,
+                        list: false,
+                        create: false,
+                        edit: false,
+
+                    },
+                    cronjobs: {
+                        title: '',
+                        width: '1%',
+                        sorting: false,
+                        edit: false,
+                        create: false,
+                        display: function (deviceData) {
+                            //Create an image that will be used to open child table
+                            var $img = $('<img src="{% static "images/cronjob.png" %}" title="Edit phone numbers" height="16" width="16" />');
+                            //Open child table when user clicks the image
+                            $img.click(function () {
+                                $('#DevicesTableContainer').jtable('openChildTable',
+                                        $img.closest('tr'),
+                                        {
+                                            title: deviceData.record.name + ' - Cron jobs',
+                                            actions: {
+                                                listAction: '/getJoblistfromJTable/' + deviceData.record.id + "/",
+                                                deleteAction: '/deleteJobfromJTable/',
+                                                updateAction: '/editJobfromJTable/',
+                                                createAction: '/addJobfromJTable/'
+                                            },
+                                            fields: {
+                                                deviceid: {
+                                                    type: 'hidden',
+                                                    defaultValue: deviceData.record.id
+                                                },
+                                                id: {
+                                                    key: true,
+                                                    create: false,
+                                                    edit: false,
+                                                    list: false
+                                                },
+                                                jobdescription: {
+                                                    title: 'Description',
+                                                    //type: 'textarea',
+                                                    width: '60%',
+                                                },
+                                                whattodo: {
+                                                    title: 'Action',
+                                                    options: ["ON", "OFF"],
+                                                },
+                                                startdate: {
+                                                    title: 'Start date',
+{#                                                    type: 'date',#}
+                                                },
+                                                starttime: {
+                                                    title: 'Start time',
+                                                  },
+                                                enddate: {
+                                                    title: 'End date',
+{#                                                    type: 'date',#}
+                                                },
+                                                endtime: {
+                                                    title: 'End time',
+                                                },
+                                                periodicity: {
+                                                    title: 'Periodicity',
+                                                    options: {'once':'Only 1 time', 'daily':'Every day','weekly':'Every week','monthly':'Every month','yearly':'Every year'}
+                                                }
+                                            },
+
+
+                                            //Initialize validation logic when a form is created
+                                            formCreated: function (event, data) {
+                                                data.form.css('width', '300px');
+                                                data.form.find('input[name="jobdescription"]').css('width', '280px');
+                                                data.form.validationEngine('attach',{promptPosition: "bottomLeft",scroll:false});
+
+                                                data.form.find('input[name="jobdescription"]').addClass('validate[required]');
+                                                data.form.find('input[name="whattodo"]').addClass('validate[required]');
+                                                data.form.find('input[name="startdate"]').addClass('validate[required,custom[date]]');
+                                                data.form.find('input[name="starttime"]').addClass('validate[required,custom[timeFormat]]');
+                                                data.form.find('input[name="enddate"]').addClass('validate[custom[date]]');
+                                                data.form.find('input[name="endtime"]').addClass('validate[custom[timeFormat]]');
+                                                data.form.find('input[name="periodicity"]').addClass('validate[required]');
+                                                data.form.validationEngine();
+                                            },
+                                            //Validate form when it is being submitted
+                                            formSubmitting: function (event, data) {
+                                                return data.form.validationEngine('validate');
+                                            },
+                                            //Dispose validation logic when form is closed
+                                            formClosed: function (event, data) {
+                                                data.form.validationEngine('hide');
+                                                data.form.validationEngine('detach');
+                                            }
+
+
+
+
+                                        }, function (data) { //opened handler
+                                            data.childTable.jtable('load');
+                                        });
+                            });
+                            //Return image to show on the person row
+                            return $img;
+                        }
+                    },
+
+                    name: {
+                        title: 'Name',
+                    },
+                    description: {
+                        title: 'Description',
+                    },
+                    systemcode: {
+                        title: 'Systemcode',
+                    },
+                    devicecode: {
+                        title: 'Devicecode',
+                    }
+                },
+                //Initialize validation logic when a form is created
+                formCreated: function (event, data) {
+                    data.form.validationEngine('attach', {promptPosition: "bottomLeft", scroll: false});
+
+                    data.form.find('input[name="name"]').addClass('validate[required]');
+                    data.form.find('input[name="systemcode"]').addClass('validate[required,custom[binaryFormat]]');
+                    data.form.find('input[name="devicecode"]').addClass('validate[required,custom[binaryFormat]]');
+                    data.form.validationEngine();
+                },
+                //Validate form when it is being submitted
+                formSubmitting: function (event, data) {
+                    return data.form.validationEngine('validate');
+                },
+                //Dispose validation logic when form is closed
+                formClosed: function (event, data) {
+                    data.form.validationEngine('hide');
+                    data.form.validationEngine('detach');
+                }
+
+            });
+            $('#DevicesTableContainer').jtable('load');
+
+
+        });
+
+    </script>
+
+</div>
+
+
+
+{% endblock %}

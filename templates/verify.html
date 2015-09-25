@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<script>
+    function verify(url) {
+        window.open(url,'_blank', "JsonWindow");
+    }
+
+    function writeconfig(url) {
+        location.href = url
+    }
+
+    function restoreconfig(url) {
+        if (confirm("Are you sure you want to restore the selected configuration?")) {
+            location.href = url
+        } else {
+            false;
+        }
+    }
+
+</script>
+<div id="contents">
+    <div id="container">
+        <div>
+            <form method="POST" class="form" id="config_form">
+                <input type="button" onclick="return verify ('/verify');" value="Check the new configuration file"><br>
+                <input type="button" onclick="return writeconfig ('/writeconfig');" value="Save configuration and restart Pilight service"><br>
+                <input type="button" onclick="return verify ('/verify');" value="Check the actualy running configuration file">
+            </form>
+        </div><br>
+
+        <div>
+            <table id="configtable" cellspacing="0">
+                <thead>
+                    <tr>
+                        <td>
+                            Backup file
+                        </td>
+                        <td>
+                            Action
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for filename in filenames %}
+                        <tr>
+                            <td width="100%">{{ filename }}</td>
+                            <td><a href="#" onclick="return restoreconfig('/restore/{{ filename }}');">Restore</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
